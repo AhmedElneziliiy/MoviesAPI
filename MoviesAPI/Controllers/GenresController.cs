@@ -23,12 +23,42 @@ namespace MoviesAPI.Controllers
             return Ok(genres);
         }
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody]CreateGenreDto dto)
+        public async Task<IActionResult> CreateAsync([FromBody]GenreDto dto)
         {
             var genre = new Genre{ Name = dto.Name};
             await _context.AddAsync(genre);
             _context.SaveChanges();
             return Ok(genre);
         }
+
+        [HttpPut("{id}")]
+        
+        public async Task<IActionResult> UpdateAsync(int id, [FromBody] GenreDto dto)
+        {
+            var genre=await _context.Genres.SingleOrDefaultAsync(g=>g.Id==id);
+            if (genre is null)
+            {
+                return NotFound($"no genre was found with than ID:{id}");
+            }
+            genre.Name = dto.Name;
+
+            _context.SaveChanges();
+
+            return Ok(genre);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            var genre = await _context.Genres.SingleOrDefaultAsync(g => g.Id == id);
+            if (genre is null)
+            {
+                return NotFound($"no genre was found with than ID:{id}");
+            }
+            _context.Genres.Remove(genre);
+            _context.SaveChanges();
+            return Ok(genre);
+        }
+
     }
 }
