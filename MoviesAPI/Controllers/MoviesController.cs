@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesAPI.Services;
@@ -11,11 +12,15 @@ namespace MoviesAPI.Controllers
     {
         private readonly IMoviesService _moviesService;
         private readonly IGenresService _genresService;
+        private readonly IMapper _mapper;
 
-        public MoviesController(IMoviesService moviesService, IGenresService genresService)
+
+
+        public MoviesController(IMoviesService moviesService, IGenresService genresService, IMapper mapper)
         {
             _moviesService = moviesService;
             _genresService = genresService;
+            _mapper = mapper;
         }
 
         //handle image size and type
@@ -33,8 +38,10 @@ namespace MoviesAPI.Controllers
         public async Task<IActionResult> GetAllAsync()
         {
             var movies = await _moviesService.GetAll();
-            //TODO map movies to DTO 
-            return Ok(movies);
+            //AutoMapper
+            var data=_mapper.Map<IEnumerable<MovieDetailsDto>>(movies);
+
+            return Ok(data);
         }
         
         [HttpGet("{id}")]
@@ -47,19 +54,8 @@ namespace MoviesAPI.Controllers
                 return NotFound();
             }
 
+            var dto = _mapper.Map<MovieDetailsDto>(movie);
 
-
-            var dto = new MovieDetailsDto
-            {
-                Id = movie.Id,
-                GenreId = movie.GenreId,
-                GenreName = movie.Genre.Name,
-                Poster = movie.Poster,
-                Rate = movie.Rate,
-                Storeline = movie.Storeline,
-                Title = movie.Title,
-                Year = movie.Year
-            };
             return Ok(dto);
         }
 
@@ -68,7 +64,10 @@ namespace MoviesAPI.Controllers
         {
             var movies = await _moviesService.GetAll(genreId);
             //todo map ovies to dto
-            return Ok(movies);
+
+            var data = _mapper.Map<IEnumerable<MovieDetailsDto>>(movies);
+
+            return Ok(data);
         }
 
 
@@ -97,15 +96,8 @@ namespace MoviesAPI.Controllers
             await dto.Poster.CopyToAsync(dataStream);
 
 
-            var movie =new Movie { 
-            GenreId= dto.GenreId,
-            Title=dto.Title,
-            Poster=dataStream.ToArray(),
-            Rate=dto.Rate,
-            Storeline = dto.Storeline,
-            Year=dto.Year,
-            };
-            
+            var movie = _mapper.Map<Movie>(dto);
+            movie.Poster=dataStream.ToArray();
            _moviesService.Add(movie);
             
             return Ok(movie);
