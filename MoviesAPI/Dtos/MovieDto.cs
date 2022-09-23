@@ -14,7 +14,7 @@ namespace MoviesAPI.Dtos
         [MaxLength(2500)]
         public string Storeline { get; set; }
 
-        public IFormFile Poster { get; set; }
+        public IFormFile? Poster { get; set; }
 
         public byte GenreId { get; set; }
 
